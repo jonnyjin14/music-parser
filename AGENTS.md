@@ -39,7 +39,7 @@ uv run pytest tests/test_main.py::test_function_name
 ## Key Conventions
 
 - **Filename parsing**: `"Singer - Song"` format (split on first `"-"`); files without `"-"` get `singer = "Unknown"`.
-- **Supported formats**: `.mp3` and `.wav` only (case-insensitive suffix check).
+- **Supported formats**: `.mp3` only (case-insensitive suffix check). `.wav` support was intentionally disabled in `helper.py` for testing purposes.
 - **CSV output**: saved to `~/OneDrive/桌面/Output_file.csv` (Windows OneDrive Chinese desktop path) with `encoding='utf-8-sig'` (BOM for Excel compatibility).
 - `scanLibrary()` must be called before `writeCsv()` — `self.df` is only set after scanning. Calling `writeCsv()` first raises `AttributeError`. No regression test exists for this — add one before shipping any CSV-related feature.
 
@@ -48,7 +48,28 @@ uv run pytest tests/test_main.py::test_function_name
 - `tests/test_main.py` — smoke test: verifies `MusicParser` is importable.
 - `tests/test_validation.py` — behavioral tests for path validation (FileNotFoundError, NotADirectoryError). This is the reproduction test for GitHub Issue #1.
 
+## Pipeline (Bob modes)
+
+The project uses a four-stage bug-fix pipeline via Bob custom modes (`.bob/custom_modes.yaml`):
+
+| Stage | Mode | Skill | Responsibility |
+|---|---|---|---|
+| 1 | Investigator | `github-issue-triage` | Reproduces bug, posts analysis comment, hands off evidence package |
+| 2 | Developer | `developer` | Applies minimal patch, smoke-checks reproduction test |
+| 3 | Tester | `tester` | Runs full test suite, issues VERIFIED / NOT_VERIFIED |
+| 4 | Reviewer | `reviewer` | Reviews code, posts resolution comment, closes issue, asks about PR |
+
+### GitHub token requirements
+
+The pipeline makes GitHub API calls at two stages:
+- **Investigator (Step 1):** checks `GITHUB_TOKEN` presence and validates `push` permission on the target repo. Sets `CAN_POST = true/false` for the rest of the session.
+- **Reviewer (Step 5, APPROVE):** posts a `✅ Fix Reviewed and Approved` comment, then closes the issue via `PATCH /issues/:number`.
+
+All API calls are guarded by `CAN_POST` and wrapped in `try/catch`. If the token is missing or lacks write access, comment text is shown for manual posting.
+
+**Required token scopes:** `public_repo` (public repos) or `repo` (private repos).
+
 ## Skills
 
-- **`github-issue-triage`** — installed globally at `~/.bob/skills/github-issue-triage/`. Fetches open GitHub issues, reproduces the chosen issue in the codebase, and posts a structured analysis comment via the GitHub REST API (PowerShell `Invoke-RestMethod`). Requires `GITHUB_TOKEN` env var for posting. Uses a supporting `fetch-issues.py` script (stdlib only, no extra deps). Invoke with `/github-issue-triage` or describe the task.
+- **`github-issue-triage`** — installed globally at `~/.bob/skills/github-issue-triage/`. Fetches open GitHub issues, reproduces the chosen issue in the codebase, posts a structured analysis comment, and hands off a structured evidence package to the Developer. Requires `GITHUB_TOKEN` with write access for posting. Uses a supporting `fetch-issues.py` script (stdlib only, no extra deps). Invoke with `/github-issue-triage` or describe the task.
   - Note: `fetch-issues.py` is **not** in this workspace — it lives only in the global skill directory.
