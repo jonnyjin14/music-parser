@@ -7,12 +7,13 @@ This file provides guidance to agents when working with code in this repository.
 - **Python 3.11** (pinned via `.python-version`)
 - **Package manager**: `uv` (uses `uv_build` as the build backend; no `pip install` — use `uv` commands)
 - **Dependencies**: Flask, pandas, numpy, requests (see `pyproject.toml`)
+- **Test framework**: pytest (declared under `[dependency-groups.dev]` in `pyproject.toml`)
 
 ## Commands
 
 ```bash
-# Install dependencies
-uv sync
+# Install dependencies (includes dev group with pytest)
+uv sync --group dev
 
 # Run the CLI entry point
 uv run music-parser
@@ -31,7 +32,7 @@ uv run pytest tests/test_main.py::test_function_name
 
 ## Architecture
 
-- **Entry point**: `music_parser:main` (defined in `pyproject.toml` `[project.scripts]`) resolves to `src/music_parser/__init__.py:main()`, **not** `main.py:main()`.
+- **Entry point**: `music_parser:main` (defined in `pyproject.toml` `[project.scripts]`) resolves to `src/music_parser/__init__.py:main()`, **not** `main.py:main()`. The `__init__.py:main()` is currently a stub — intended to be wired to `helper.MusicParser` for real CLI behavior.
 - `src/music_parser/main.py` is a standalone dev/debug script (hardcodes a local path `D:\Dell Files\Songs`) — it is **not** the installed entry point.
 - Core logic lives in `src/music_parser/helper.py` — the `MusicParser` class.
 
@@ -40,7 +41,12 @@ uv run pytest tests/test_main.py::test_function_name
 - **Filename parsing**: `"Singer - Song"` format (split on first `"-"`); files without `"-"` get `singer = "Unknown"`.
 - **Supported formats**: `.mp3` and `.wav` only (case-insensitive suffix check).
 - **CSV output**: saved to `~/OneDrive/桌面/Output_file.csv` (Windows OneDrive Chinese desktop path) with `encoding='utf-8-sig'` (BOM for Excel compatibility).
-- `scanLibrary()` must be called before `writeCsv()` — `self.df` is only set after scanning.
+- `scanLibrary()` must be called before `writeCsv()` — `self.df` is only set after scanning. Calling `writeCsv()` first raises `AttributeError`. No regression test exists for this — add one before shipping any CSV-related feature.
+
+## Tests
+
+- `tests/test_main.py` — smoke test: verifies `MusicParser` is importable.
+- `tests/test_validation.py` — behavioral tests for path validation (FileNotFoundError, NotADirectoryError). This is the reproduction test for GitHub Issue #1.
 
 ## Skills
 

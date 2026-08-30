@@ -24,6 +24,7 @@ Determine whether this is a first-time entry or a re-entry from a NOT_VERIFIED T
 
 ```
 Evidence Package:
+- GitHub issue: <REPO>#<ISSUE_NUMBER>
 - Root cause: <file>:<line> — <one sentence explanation>
 - Reproduction command: <exact command>
 - Reproduction output: <trimmed output showing the failure>

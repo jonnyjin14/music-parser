@@ -23,6 +23,7 @@ In the bug-fix pipeline, gather:
 - The Investigator's evidence package:
   ```
   Evidence Package:
+  - GitHub issue: <REPO>#<ISSUE_NUMBER>
   - Root cause: <file>:<line> — <one sentence explanation>
   - Reproduction command: <exact command>
   - Reproduction output: <trimmed output showing the failure>
@@ -149,7 +150,31 @@ Classify every finding into exactly one category:
 
 Present the review to the user. Do **not** edit any files.
 
-- **APPROVE**: ask if they want to create a pull request.
+- **APPROVE**:
+  1. If the evidence package includes a `GitHub issue` field with a `REPO` and `ISSUE_NUMBER`,
+     close the issue via the GitHub API:
+     ```
+     execute_command:
+       try {
+         $body = @{ state = "closed"; state_reason = "completed" } | ConvertTo-Json
+         Invoke-RestMethod -Method Patch `
+           -Uri "https://api.github.com/repos/<REPO>/issues/<ISSUE_NUMBER>" `
+           -Headers @{
+             Authorization = "Bearer $env:GITHUB_TOKEN"
+             Accept        = "application/vnd.github+json"
+             "X-GitHub-Api-Version" = "2022-11-28"
+           } `
+           -Body $body `
+           -ContentType "application/json" | Out-Null
+         Write-Output "ISSUE_CLOSED"
+       } catch {
+         Write-Output "CLOSE_FAILED: $($_.Exception.Message)"
+       }
+     ```
+     - On `ISSUE_CLOSED`: report to the user that the issue has been closed.
+     - On `CLOSE_FAILED` or if `GITHUB_TOKEN` is not set / `CAN_POST` was `false`: inform the
+       user and ask them to close the issue manually.
+  2. Ask if they want to create a pull request.
 - **REQUEST_CHANGES**: list each blocking issue, then switch to Developer mode automatically:
   ```
   switch_mode: developer
