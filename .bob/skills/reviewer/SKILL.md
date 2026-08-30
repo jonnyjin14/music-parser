@@ -166,6 +166,25 @@ Present the review to the user. Do **not** edit any files.
      ---
      *Reviewed and approved by Bob (AI assistant)*
      ```
+     Before posting, re-establish `CAN_POST` for this session (the Investigator set it earlier,
+     but mode switches start a fresh context). Run:
+     ```
+     execute_command: if ($env:GITHUB_TOKEN) { Write-Output "TOKEN_PRESENT" } else { Write-Output "TOKEN_MISSING" }
+     ```
+     - If `TOKEN_MISSING`: set `CAN_POST = false`. Show the comment text and ask the user to
+       post it manually. Skip the API calls below.
+     - If `TOKEN_PRESENT`: verify write access to `REPO`:
+       ```
+       execute_command: Invoke-RestMethod -Uri "https://api.github.com/repos/<REPO>" `
+         -Headers @{
+           Authorization = "Bearer $env:GITHUB_TOKEN"
+           Accept        = "application/vnd.github+json"
+           "X-GitHub-Api-Version" = "2022-11-28"
+         } | Select-Object -ExpandProperty permissions
+       ```
+       - If `permissions.push` is `true`: set `CAN_POST = true`.
+       - Otherwise: set `CAN_POST = false`, show the comment text, and ask the user to post manually.
+
      Then post it (**only if `CAN_POST` is `true`**):
      ```
      execute_command:
