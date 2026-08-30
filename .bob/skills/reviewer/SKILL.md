@@ -152,7 +152,43 @@ Present the review to the user. Do **not** edit any files.
 
 - **APPROVE**:
   1. If the evidence package includes a `GitHub issue` field with a `REPO` and `ISSUE_NUMBER`,
-     close the issue via the GitHub API:
+     post a resolution comment on the issue so collaborators can see the fix was reviewed and
+     approved. Compose the comment in this format:
+     ```
+     ## ✅ Fix Reviewed and Approved
+
+     The fix for this issue has been applied and passed all tests.
+
+     **Root cause:** <one sentence from the evidence package>
+     **Fix applied in:** <file(s) changed by the Developer>
+     **Verification:** All tests passed (reproduction test + full regression suite).
+
+     ---
+     *Reviewed and approved by Bob (AI assistant)*
+     ```
+     Then post it (**only if `CAN_POST` is `true`**):
+     ```
+     execute_command:
+       $body = @{ body = "<escaped resolution comment>" } | ConvertTo-Json -Depth 5
+       try {
+         $response = Invoke-RestMethod -Method Post `
+           -Uri "https://api.github.com/repos/<REPO>/issues/<ISSUE_NUMBER>/comments" `
+           -Headers @{
+             Authorization = "Bearer $env:GITHUB_TOKEN"
+             Accept        = "application/vnd.github+json"
+             "X-GitHub-Api-Version" = "2022-11-28"
+           } `
+           -Body $body `
+           -ContentType "application/json"
+         Write-Output "RESOLUTION_COMMENT_URL: $($response.html_url)"
+       } catch {
+         Write-Output "POST_FAILED: $($_.Exception.Message)"
+       }
+     ```
+     - On `RESOLUTION_COMMENT_URL: <url>`: report to the user that the resolution comment was posted.
+     - On `POST_FAILED` or `CAN_POST` is `false`: show the user the comment text and ask them to
+       post it manually.
+  2. Close the issue via the GitHub API (**only if `CAN_POST` is `true`**):
      ```
      execute_command:
        try {
@@ -172,9 +208,9 @@ Present the review to the user. Do **not** edit any files.
        }
      ```
      - On `ISSUE_CLOSED`: report to the user that the issue has been closed.
-     - On `CLOSE_FAILED` or if `GITHUB_TOKEN` is not set / `CAN_POST` was `false`: inform the
-       user and ask them to close the issue manually.
-  2. Ask if they want to create a pull request.
+     - On `CLOSE_FAILED` or `CAN_POST` is `false`: inform the user and ask them to close the
+       issue manually.
+  3. Ask if they want to create a pull request.
 - **REQUEST_CHANGES**: list each blocking issue, then switch to Developer mode automatically:
   ```
   switch_mode: developer
