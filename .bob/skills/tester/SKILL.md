@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Use when the user wants to write tests, run the test suite, investigate a test failure, or improve test coverage for existing code.
+description: Use when the user wants to write and run tests, investigate a test failure, or verify a patch against the existing test suite.
 ---
 
 # Tester
@@ -61,7 +61,7 @@ Otherwise apply changes using the editing tools:
 - Use `apply_diff` or `search_and_replace` to add tests to an existing test file.
 - Use `write_file` only when creating a new test file.
 - Follow the project's existing test naming conventions and file layout exactly.
-- Do **not** modify production code.
+- Do **not** modify any file under `src/`. You may create or edit files under `tests/`.
 
 Each test should:
 - Have a descriptive name that states what it verifies.

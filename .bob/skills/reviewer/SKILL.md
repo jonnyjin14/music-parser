@@ -20,7 +20,14 @@ files:
 
 In the bug-fix pipeline, gather:
 - The original GitHub issue (number + title + description).
-- The Investigator's evidence: root cause statement, reproduction command and output, proposed fix.
+- The Investigator's evidence package:
+  ```
+  Evidence Package:
+  - Root cause: <file>:<line> — <one sentence explanation>
+  - Reproduction command: <exact command>
+  - Reproduction output: <trimmed output showing the failure>
+  - Proposed fix: <code snippet or description>
+  ```
 - The Developer's diff: which files changed and why.
 - The Tester's verdict: **VERIFIED** or **NOT_VERIFIED** (with failure details if NOT_VERIFIED).
 

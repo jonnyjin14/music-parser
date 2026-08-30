@@ -140,10 +140,15 @@ Tell the user:
 - The URL of the issue where the comment was posted (from the API response `html_url`), or
 - That the comment text is ready to paste manually if no token was available.
 
-Present the evidence package for the Developer:
-- Root cause (file + line)
-- Minimal failing test or command
-- Proposed fix snippet
+Present the evidence package for the Developer using this exact structure:
+
+```
+Evidence Package:
+- Root cause: <file>:<line> — <one sentence explanation>
+- Reproduction command: <exact command>
+- Reproduction output: <trimmed output showing the failure>
+- Proposed fix: <code snippet or description>
+```
 
 Then switch to Developer mode automatically:
 

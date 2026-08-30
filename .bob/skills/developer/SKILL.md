@@ -20,10 +20,15 @@ re-investigate from scratch -- read only the code relevant to the new failures.
 
 Determine whether this is a first-time entry or a re-entry from a NOT_VERIFIED Tester report.
 
-**First entry:** Read the Investigator's evidence package. Identify:
-- The root cause (file + line)
-- The exact failing test or command that reproduces the bug
-- The proposed fix
+**First entry:** Read the Investigator's evidence package. It uses this structure:
+
+```
+Evidence Package:
+- Root cause: <file>:<line> — <one sentence explanation>
+- Reproduction command: <exact command>
+- Reproduction output: <trimmed output showing the failure>
+- Proposed fix: <code snippet or description>
+```
 
 **Re-entry (NOT_VERIFIED):** Read the Tester's failure report. Identify:
 - Which test(s) still fail and why (reproduction test still failing, or regressions)
