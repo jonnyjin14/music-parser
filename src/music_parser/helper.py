@@ -6,6 +6,10 @@ class MusicParser:
     def __init__(self, path):
         # path = Path(__file__).parent
         self.path = Path(path)
+        if not self.path.exists():
+            raise FileNotFoundError(f"Music library path does not exist: {self.path}")
+        if not self.path.is_dir():
+            raise NotADirectoryError(f"Music library path is not a directory: {self.path}")
         print(f"Current Path is\n{self.path}")
 
     def scanLibrary(self):
