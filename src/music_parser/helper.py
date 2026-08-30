@@ -22,7 +22,8 @@ class MusicParser:
         # for file in path.iterdir():
         for file in self.path.rglob("*"):
             
-            if file.suffix.lower() in [".mp3", ".wav"]:
+            # if file.suffix.lower() in [".mp3", ".wav"]:
+            if file.suffix.lower() in [".mp3"]: # Make a bug for ibm bob testing -> Only read mp3
                 # Check if file name has singer
                 if "-" in file.stem: # stem -> Remove the extension
                     singer,song = file.stem.split("-", 1)
